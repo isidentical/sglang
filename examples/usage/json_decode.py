@@ -5,9 +5,10 @@ python json_decode.py
 """
 from enum import Enum
 
+from pydantic import BaseModel, constr
 import sglang as sgl
-from pydantic import BaseModel
-from sglang.srt.constrained import build_regex_from_object
+from sglang.srt.constrained.json_schema import build_regex_from_object
+
 
 character_regex = (
     r"""\{\n"""
@@ -29,10 +30,7 @@ character_regex = (
 
 @sgl.function
 def character_gen(s, name):
-    s += (
-        name
-        + " is a character in Harry Potter. Please fill in the following information about this character.\n"
-    )
+    s += name + " is a character in Harry Potter. Please fill in the following information about this character.\n"
     s += sgl.gen("json_output", max_tokens=256, regex=character_regex)
 
 
@@ -65,6 +63,11 @@ def pydantic_wizard_gen(s):
         temperature=0,
         regex=build_regex_from_object(Wizard),  # Requires pydantic >= 2.0
     )
+
+
+def driver_character_gen():
+    state = character_gen.run(name="Hermione Granger")
+    print(state.text())
 
 
 def driver_pydantic_wizard_gen():
